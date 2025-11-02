@@ -1,0 +1,15 @@
+# Pasta de arquivos compilados
+build/
+
+# Arquivos objeto
+*.o
+
+# Executáveis do Windows
+*.exe
+
+# Bibliotecas dinâmicas
+*.so
+*.dll
+
+# Arquivos de dados
+data/*.csv
