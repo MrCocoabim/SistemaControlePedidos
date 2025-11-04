@@ -23,7 +23,7 @@ struct PessoaJuridica {
 
 // Struct principal do Cliente
 struct Cliente {
-    int id; // Código identificador
+    int id;
     char endereco[200];
     char telefone[20];
     char email[100];
