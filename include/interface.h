@@ -1,6 +1,15 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-// Declarações de funções da interface (menus, etc.)
+void inicializarInterface(void);
+void finalizarInterface(void);
+int mostrarMenuPrincipal(void);
+
+// Funções do submenu
+void mostrarMenuClientes(void);
+void mostrarMenuProdutos(void);
+void mostrarMenuPedidos(void);
+
 
 #endif // INTERFACE_H
+
