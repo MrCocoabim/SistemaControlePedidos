@@ -17,21 +17,19 @@ int main() {
 
         switch (escolha) {
             case 1:
-		mostrarMenuClientes();
-                getch();
+                mostrarMenuClientes();
                 break;
             case 2:
                 mostrarMenuProdutos();
-                getch();
                 break;
             case 3:
                 mostrarMenuPedidos();
-                getch();
                 break;
             case 4:
                 // Sair
                 break;
         }
+
     }
 
     finalizarInterface();
