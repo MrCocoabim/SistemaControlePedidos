@@ -27,13 +27,16 @@ struct Cliente {
     char endereco[200];
     char telefone[20];
     char email[100];
-    
+
     enum TipoCliente tipo; // Armazena se é PF ou PJ
-    
+
     union {
         struct PessoaFisica pf;
         struct PessoaJuridica pj;
     } dados;
 };
+
+int validarCPF(char* cpf);
+int validarCNPJ(char* cnpj);
 
 #endif // CLIENTE_H

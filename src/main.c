@@ -1,5 +1,6 @@
 #include "interface.h"
 #include <ncurses.h>
+#include "cliente.h"
 
 int main() {
 
@@ -26,7 +27,6 @@ int main() {
                 mostrarMenuPedidos();
                 break;
             case 4:
-                // Sair
                 break;
         }
 
