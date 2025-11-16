@@ -39,4 +39,8 @@ struct Cliente {
 int validarCPF(char* cpf);
 int validarCNPJ(char* cnpj);
 
+// Funções de busca
+int procurarClientePorId(int id);
+int procurarClientePorDocumento(char* documento); // Procura por CPF ou CNPJ
+
 #endif // CLIENTE_H

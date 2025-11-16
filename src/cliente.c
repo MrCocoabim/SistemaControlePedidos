@@ -1,4 +1,5 @@
 #include "cliente.h"
+#include "dados.h"
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -115,4 +116,44 @@ int validarCNPJ(char* cnpj) {
     }
 
     return 0; // Inválido
+}
+
+// --- Funções de Busca (Analisar Cliente) --
+
+int procurarClientePorId(int id) {
+    
+    for (int i = 0; i < numClientes; i++) {
+        if (listaClientes[i].id == id) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int procurarClientePorDocumento(char* documento) {
+    char docLimpo[20];
+    int j = 0;
+
+    // Limpa o documento
+    for (int i = 0; documento[i] != '\0'; i++) {
+        if (isdigit(documento[i])) {
+            docLimpo[j] = documento[i];
+            j++;
+        }
+    }
+    docLimpo[j] = '\0';
+
+    for (int i = 0; i < numClientes; i++) {
+        if (listaClientes[i].tipo == PESSOA_FISICA) {
+            // Compara com CPF
+            if (strcmp(listaClientes[i].dados.pf.cpf, docLimpo) == 0) {
+                return 1;
+            }
+        } else {
+                if (strcmp(listaClientes[i].dados.pj.cnpj, docLimpo) == 0) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
