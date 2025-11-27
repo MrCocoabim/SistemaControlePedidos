@@ -153,7 +153,7 @@ void mostrarMenuClientes(void) {
                     clear();
                     refresh();
                     telaCadastrarCliente();
-                    escolha = -1;
+                    escolha = -1;// Reseta
                     break;
                 case 2: // Listar
                     clear();
@@ -161,12 +161,16 @@ void mostrarMenuClientes(void) {
                     telaListarClientes();
                     escolha = -1;
                     break;
-                case 3: // Consultar
-                    // TODO: Chamar telaConsultarCliente()
-                    escolha = -1; // Reseta
+                case 3:// Consultar
+                    clear();
+                    refresh();
+                    telaConsultarCliente();
+                    escolha = -1;
                     break;
                 case 4: // Remover
-                    // TODO: Chamar telaRemoverCliente()
+                    clear();
+                    refresh();
+                    telaRemoverCliente();
                     escolha = -1; // Reseta
                     break;
             }
@@ -174,8 +178,6 @@ void mostrarMenuClientes(void) {
     }
     delwin(menuWin);
 }
-
-
 
 // ########## MENU DE PRODUTOS ##########
 void mostrarMenuProdutos(void) {
@@ -225,22 +227,44 @@ void mostrarMenuProdutos(void) {
             case KEY_DOWN:
                 destacado = (destacado == numOpcoes - 1) ? 0 : destacado + 1;
                 break;
-            case 10: // ENTER
+            case 10:
                 escolha = destacado + 1;
-                if (escolha == 5) // "Voltar"
+                if (escolha == 5)
                     escolha = -2;
                 break;
         }
-        if (escolha == -2) // Sair do loop
-            break;
 
-    }
+        if (escolha == -2) {
+            break;
+        }
+
+        if (escolha != -1) {
+            switch (escolha) {
+                case 1: // Cadastrar
+                    clear(); refresh();
+                    telaCadastrarProduto();
+                    escolha = -1;
+                    break;
+                case 2: // Listar
+                    clear(); refresh();
+                    telaListarProdutos();
+                    escolha = -1;
+                    break;
+                case 3: // Consultar
+                    // TODO
+                    escolha = -1;
+                    break;
+                case 4: // Remover
+                    // TODO
+                    escolha = -1;
+                    break;
+            }
+        }
+     }
     delwin(menuWin);
 }
 
-
-
-// ########## MENU DE PEDIDOS ##########
+// ######## MENU DE PEDIDOS ##########
 void mostrarMenuPedidos(void) {
     char *opcoes[] = {
         "1. Cadastrar Pedido",
@@ -458,4 +482,192 @@ void telaListarClientes(void) {
     wgetch(listWin); // Espera
 
     delwin(listWin); // Apaga a janela
+}
+
+// ########## TELA DE CONSULTAR CLIENTE ##########
+void telaConsultarCliente(void) {
+    int altura = 16, largura = 60;
+    int y = (LINES - altura) / 2;
+    int x = (COLS - largura) / 2;
+    WINDOW *win = newwin(altura, largura, y, x);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 17) / 2, "CONSULTAR CLIENTE");
+    wattroff(win, COLOR_PAIR(2));
+
+    echo();
+    char idStr[10];
+    mvwprintw(win, 3, 2, "Digite o ID do Cliente: ");
+    wgetnstr(win, idStr, 9);
+    noecho();
+
+    int id = atoi(idStr);
+    int indice = obterIndiceCliente(id);
+
+    if (indice == -1) {
+        wattron(win, COLOR_PAIR(1) | A_BOLD);
+        mvwprintw(win, 5, 2, "ERRO: Cliente com ID %d nao encontrado.", id);
+        wattroff(win, COLOR_PAIR(1) | A_BOLD);
+    } else {
+        // Mostra os dados do cliente
+        struct Cliente c = listaClientes[indice];
+
+        mvwprintw(win, 5, 2, "ID: %d", c.id);
+        if (c.tipo == PESSOA_FISICA) {
+            mvwprintw(win, 6, 2, "Tipo: Pessoa Fisica");
+            mvwprintw(win, 7, 2, "Nome: %s", c.dados.pf.nome);
+            mvwprintw(win, 8, 2, "CPF: %s", c.dados.pf.cpf);
+        } else {
+            mvwprintw(win, 6, 2, "Tipo: Pessoa Juridica");
+            mvwprintw(win, 7, 2, "Razao Social: %s", c.dados.pj.razaoSocial);
+            mvwprintw(win, 8, 2, "CNPJ: %s", c.dados.pj.cnpj);
+        }
+        mvwprintw(win, 9, 2, "Telefone: %s", c.telefone);
+        mvwprintw(win, 10, 2, "Email: %s", c.email);
+        mvwprintw(win, 11, 2, "Endereco: %s", c.endereco);
+    }
+
+    mvwprintw(win, 14, 2, "Pressione qualquer tecla para voltar...");
+    wrefresh(win);
+    wgetch(win);
+    delwin(win);
+}
+
+// ########## TELA DE REMOVER CLIENTE ##########
+void telaRemoverCliente(void) {
+    int altura = 12, largura = 60;
+    int y = (LINES - altura) / 2;
+    int x = (COLS - largura) / 2;
+    WINDOW *win = newwin(altura, largura, y, x);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 15) / 2, "REMOVER CLIENTE");
+    wattroff(win, COLOR_PAIR(2));
+
+    echo();
+    char idStr[10];
+    mvwprintw(win, 3, 2, "Digite o ID para remover: ");
+    wgetnstr(win, idStr, 9);
+    noecho();
+
+    int id = atoi(idStr);
+    int indice = obterIndiceCliente(id);
+
+    if (indice == -1) {
+        mvwprintw(win, 5, 2, "ERRO: Cliente ID %d nao encontrado.", id);
+        mvwprintw(win, 7, 2, "Pressione qualquer tecla para voltar...");
+        wgetch(win);
+    } else {
+        // Mostra o nome para confirmar
+        struct Cliente c = listaClientes[indice];
+        char nome[100];
+        if (c.tipo == PESSOA_FISICA) strcpy(nome, c.dados.pf.nome);
+        else strcpy(nome, c.dados.pj.razaoSocial);
+
+        mvwprintw(win, 5, 2, "Cliente: %s", nome);
+        mvwprintw(win, 6, 2, "Tem certeza? (S/N): ");
+
+        int ch = wgetch(win);
+        if (ch == 's' || ch == 'S') {
+            excluirCliente(id);
+            mvwprintw(win, 8, 2, "SUCESSO: Cliente removido.");
+        } else {
+            mvwprintw(win, 8, 2, "Operacao cancelada.");
+        }
+        mvwprintw(win, 10, 2, "Pressione qualquer tecla...");
+        wgetch(win);
+    }
+
+    delwin(win);
+}
+
+// ########## TELA DE CADASTRAR PRODUTO ##########
+void telaCadastrarProduto(void) {
+    if (numProdutos >= MAX_PRODUTOS) {
+        mvprintw(0, 0, "ERRO: Limite de produtos atingido!");
+        getch();
+        return;
+    }
+
+    int altura = 16, largura = 60;
+    WINDOW *win = newwin(altura, largura, (LINES - altura) / 2, (COLS - largura) / 2);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 20) / 2, "CADASTRAR PRODUTO");
+    wattroff(win, COLOR_PAIR(2));
+
+    char idStr[10], precoStr[20], estoqueStr[10];
+    struct Produto novoProd;
+
+    echo();
+
+    // 1. ID
+    mvwprintw(win, 3, 2, "ID (numerico): ");
+    wgetnstr(win, idStr, 9);
+    novoProd.id = atoi(idStr);
+
+    if (novoProd.id <= 0 || procurarProdutoPorId(novoProd.id)) {
+        mvwprintw(win, 14, 2, "ERRO: ID invalido ou ja existe!");
+        noecho(); wgetch(win); delwin(win); return;
+    }
+
+    // 2. Descrição
+    mvwprintw(win, 5, 2, "Descricao: ");
+    wgetnstr(win, novoProd.descricao, 99);
+
+    // 3. Preço
+    mvwprintw(win, 7, 2, "Preco (ex: 10.50): ");
+    wgetnstr(win, precoStr, 19);
+    novoProd.preco = atof(precoStr); // Converte string para double
+
+    // 4. Estoque
+    mvwprintw(win, 9, 2, "Qtd em Estoque: ");
+    wgetnstr(win, estoqueStr, 9);
+    novoProd.estoque = atoi(estoqueStr);
+
+    noecho();
+
+    // Salvar
+    listaProdutos[numProdutos] = novoProd;
+    numProdutos++;
+
+    mvwprintw(win, 12, 2, "Produto cadastrado com sucesso!");
+    mvwprintw(win, 14, 2, "Pressione qualquer tecla...");
+    wrefresh(win);
+    wgetch(win);
+    delwin(win);
+}
+
+// ########## TELA DE LISTAR PRODUTOS ##########
+void telaListarProdutos(void) {
+    int altura = LINES - 2, largura = COLS - 2;
+    WINDOW *win = newwin(altura, largura, 1, 1);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 17) / 2, "LISTA DE PRODUTOS");
+    wattroff(win, COLOR_PAIR(2));
+
+    mvwprintw(win, 3, 2, "ID | Descricao                      | Preco      | Estoque");
+    mvwprintw(win, 4, 2, "---+--------------------------------+------------+--------");
+
+    if (numProdutos == 0) {
+        mvwprintw(win, 6, 2, "Nenhum produto cadastrado.");
+    } else {
+        for (int i = 0; i < numProdutos; i++) {
+            mvwprintw(win, 6 + i, 2, "%-2d | %-30s | R$ %-7.2f | %d",
+                      listaProdutos[i].id,
+                      listaProdutos[i].descricao,
+                      listaProdutos[i].preco,
+                      listaProdutos[i].estoque);
+        }
+    }
+
+    mvwprintw(win, altura - 2, 2, "Pressione qualquer tecla para voltar...");
+    wrefresh(win);
+    wgetch(win);
+    delwin(win);
 }

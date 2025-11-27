@@ -10,9 +10,15 @@ void mostrarMenuClientes(void);
 void mostrarMenuProdutos(void);
 void mostrarMenuPedidos(void);
 
+// Telas de cliente
 void telaCadastrarCliente(void);
-
 void telaListarClientes(void);
+void telaConsultarCliente(void);
+void telaRemoverCliente(void);
+
+// Telas de Produto
+void telaCadastrarProduto(void);
+void telaListarProdutos(void);
 
 #endif // INTERFACE_H
 

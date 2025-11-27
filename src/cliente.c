@@ -157,3 +157,31 @@ int procurarClientePorDocumento(char* documento) {
     }
     return 0;
 }
+
+// Retorna o índice do cliente com o ID fornecido.
+int obterIndiceCliente(int id) {
+    for (int i = 0; i < numClientes; i++) {
+        if (listaClientes[i].id == id) {
+            return i; // Retorna a posição do cliente
+        }
+    }
+    return -1;
+}
+
+
+// Remove um cliente pelo ID e reorganiza o array.
+int excluirCliente(int id) {
+    int indice = obterIndiceCliente(id);
+
+    if (indice == -1) {
+        return 0;
+    }
+
+    // Desloca todos os clientes a frente uma posição para trás
+    for (int i = indice; i < numClientes - 1; i++) {
+        listaClientes[i] = listaClientes[i + 1];
+    }
+
+    numClientes--;// Decrementa o total de clientes
+    return 1;
+}

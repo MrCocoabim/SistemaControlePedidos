@@ -42,5 +42,8 @@ int validarCNPJ(char* cnpj);
 // Funções de busca
 int procurarClientePorId(int id);
 int procurarClientePorDocumento(char* documento); // Procura por CPF ou CNPJ
+int obterIndiceCliente(int id);
+int excluirCliente(int id);
+
 
 #endif // CLIENTE_H

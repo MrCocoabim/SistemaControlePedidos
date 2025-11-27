@@ -9,4 +9,6 @@ struct Produto {
     int estoque;
 };
 
+int procurarProdutoPorId(int id);
+
 #endif // PRODUTO_H
