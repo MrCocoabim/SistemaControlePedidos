@@ -10,5 +10,9 @@ struct Produto {
 };
 
 int procurarProdutoPorId(int id);
+int obterIndiceProduto(int id);
+int verificarProdutoEmPedidos(int id);
+int excluirProduto(int id);
+
 
 #endif // PRODUTO_H

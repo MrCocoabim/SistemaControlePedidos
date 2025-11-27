@@ -19,6 +19,8 @@ void telaRemoverCliente(void);
 // Telas de Produto
 void telaCadastrarProduto(void);
 void telaListarProdutos(void);
+void telaConsultarProduto(void);
+void telaRemoverProduto(void);
 
 #endif // INTERFACE_H
 

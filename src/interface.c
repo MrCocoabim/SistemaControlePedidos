@@ -251,11 +251,13 @@ void mostrarMenuProdutos(void) {
                     escolha = -1;
                     break;
                 case 3: // Consultar
-                    // TODO
+                    clear(); refresh();
+                    telaConsultarProduto();
                     escolha = -1;
                     break;
                 case 4: // Remover
-                    // TODO
+                    clear(); refresh();
+                    telaRemoverProduto();
                     escolha = -1;
                     break;
             }
@@ -667,6 +669,91 @@ void telaListarProdutos(void) {
     }
 
     mvwprintw(win, altura - 2, 2, "Pressione qualquer tecla para voltar...");
+    wrefresh(win);
+    wgetch(win);
+    delwin(win);
+}
+
+// ########## TELA DE CONSULTAR PRODUTO ##########
+void telaConsultarProduto(void) {
+    int altura = 14, largura = 60;
+    WINDOW *win = newwin(altura, largura, (LINES - altura) / 2, (COLS - largura) / 2);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 17) / 2, "CONSULTAR PRODUTO");
+    wattroff(win, COLOR_PAIR(2));
+
+    echo();
+    char idStr[10];
+    mvwprintw(win, 3, 2, "Digite o ID do Produto: ");
+    wgetnstr(win, idStr, 9);
+    noecho();
+
+    int id = atoi(idStr);
+    int indice = obterIndiceProduto(id);
+
+    if (indice == -1) {
+        mvwprintw(win, 5, 2, "ERRO: Produto ID %d nao encontrado.", id);
+    } else {
+        struct Produto p = listaProdutos[indice];
+        mvwprintw(win, 5, 2, "ID: %d", p.id);
+        mvwprintw(win, 6, 2, "Descricao: %s", p.descricao);
+        mvwprintw(win, 7, 2, "Preco: R$ %.2f", p.preco);
+        mvwprintw(win, 8, 2, "Estoque: %d", p.estoque);
+    }
+
+    mvwprintw(win, 11, 2, "Pressione qualquer tecla para voltar...");
+    wrefresh(win);
+    wgetch(win);
+    delwin(win);
+}
+
+// ########## TELA DE REMOVER PRODUTO ##########
+void telaRemoverProduto(void) {
+    int altura = 14, largura = 60;
+    WINDOW *win = newwin(altura, largura, (LINES - altura) / 2, (COLS - largura) / 2);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 15) / 2, "REMOVER PRODUTO");
+    wattroff(win, COLOR_PAIR(2));
+
+    echo();
+    char idStr[10];
+    mvwprintw(win, 3, 2, "ID do Produto a remover: ");
+    wgetnstr(win, idStr, 9);
+    noecho();
+
+    int id = atoi(idStr);
+    int indice = obterIndiceProduto(id);
+
+    if (indice == -1) {
+        mvwprintw(win, 5, 2, "ERRO: Produto ID %d nao encontrado.", id);
+    } else {
+        // Verifica dependência em pedidos
+        if (verificarProdutoEmPedidos(id)) {
+            wattron(win, COLOR_PAIR(2));
+            mvwprintw(win, 5, 2, "ERRO: Produto esta em PEDIDOS!");
+            mvwprintw(win, 6, 2, "Nao e permitido excluir.");
+            wattroff(win, COLOR_PAIR(2));
+        } else {
+            // Produto livre, liberado para excluir
+            struct Produto p = listaProdutos[indice];
+            mvwprintw(win, 5, 2, "Produto: %s", p.descricao);
+            mvwprintw(win, 6, 2, "Tem certeza? (S/N): ");
+
+            int ch = wgetch(win);
+            if (ch == 's' || ch == 'S') {
+                excluirProduto(id);
+                mvwprintw(win, 8, 2, "SUCESSO: Produto removido.");
+            } else {
+                mvwprintw(win, 8, 2, "Operacao cancelada.");
+            }
+        }
+    }
+
+    mvwprintw(win, 11, 2, "Pressione qualquer tecla...");
     wrefresh(win);
     wgetch(win);
     delwin(win);
