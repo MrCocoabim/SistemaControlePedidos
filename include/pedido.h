@@ -18,4 +18,8 @@ struct ItemPedido {
     double subtotal; // subtotal = quantidade * preco do produto
 };
 
+int procurarPedidoPorId(int id);
+int obterIndicePedido(int id);
+int excluirPedido(int id);
+
 #endif // PEDIDO_H

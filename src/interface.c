@@ -83,7 +83,6 @@ int mostrarMenuPrincipal (void){
     delwin(menuWin); // Apaga a janela do menu
 
     // Retorna a escolha
-    // Adiciona +1 para corresponder ao número da opção
     return escolha + 1;
 }
 
@@ -322,8 +321,31 @@ void mostrarMenuPedidos(void) {
         }
         if (escolha == -2) // Sair do loop
             break;
-
-    }
+        }
+	if (escolha != -1) {
+            switch (escolha) {
+                case 1: // Cadastrar
+                    clear(); refresh();
+                    telaCadastrarPedido();
+                    escolha = -1;
+                    break;
+                case 2: // Listar
+		    clear(); refresh();
+                    telaListarPedidos();
+                    escolha = -1;
+                    break;
+                case 3: // Consultar
+                    clear(); refresh();
+                    telaConsultarPedido();
+                    escolha = -1;
+                    break;
+                case 4: // Remover
+                    clear(); refresh();
+                    telaRemoverPedido();
+                    escolha = -1;
+                    break;
+            }
+        }
     delwin(menuWin);
 }
 
@@ -756,5 +778,301 @@ void telaRemoverProduto(void) {
     mvwprintw(win, 11, 2, "Pressione qualquer tecla...");
     wrefresh(win);
     wgetch(win);
+    delwin(win);
+}
+// ########## TELA DE CADASTRAR PEDIDO ##########
+void telaCadastrarPedido(void) {
+    // Verificar limites
+    if (numPedidos >= MAX_PEDIDOS) {
+        mvprintw(0, 0, "ERRO: Limite de pedidos atingido!");
+        getch(); return;
+    }
+    if (numItensPedido >= MAX_ITENS_PEDIDO) {
+        mvprintw(0, 0, "ERRO: Limite de itens atingido (tabela cheia)!");
+        getch(); return;
+    }
+
+    int altura = 20, largura = 70;
+    WINDOW *win = newwin(altura, largura, (LINES - altura) / 2, (COLS - largura) / 2);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 18) / 2, "CADASTRAR PEDIDO");
+    wattroff(win, COLOR_PAIR(2));
+
+    struct Pedido novoPedido;
+    char buffer[50];
+    echo();
+
+    // Dados do Pedido
+    mvwprintw(win, 3, 2, "ID do Pedido: ");
+    wgetnstr(win, buffer, 9);
+    novoPedido.id = atoi(buffer);
+
+    if (novoPedido.id <= 0 || procurarPedidoPorId(novoPedido.id)) {
+        mvwprintw(win, 16, 2, "ERRO: ID invalido ou ja existe!");
+        noecho(); wgetch(win); delwin(win); return;
+    }
+
+    mvwprintw(win, 4, 2, "Data (dd/mm/aaaa): ");
+    wgetnstr(win, novoPedido.data, 10);
+
+    // Vincular Cliente
+    mvwprintw(win, 5, 2, "ID do Cliente: ");
+    wgetnstr(win, buffer, 9);
+    int idCliente = atoi(buffer);
+
+    // Validar se o cliente existe
+    int idxCliente = obterIndiceCliente(idCliente);
+    if (idxCliente == -1) {
+        mvwprintw(win, 16, 2, "ERRO: Cliente nao encontrado!");
+        noecho(); wgetch(win); delwin(win); return;
+    }
+    novoPedido.clienteId = idCliente;
+
+    // Mostrar nome do cliente
+    struct Cliente c = listaClientes[idxCliente];
+    if (c.tipo == PESSOA_FISICA) 
+        mvwprintw(win, 5, 30, "(%s)", c.dados.pf.nome);
+    else 
+        mvwprintw(win, 5, 30, "(%s)", c.dados.pj.razaoSocial);
+
+    // Adicionar Itens
+    novoPedido.total = 0.0;
+    int continuar = 1;
+    int linhaItem = 8;
+
+    mvwprintw(win, 7, 2, "--- Itens do Pedido ---");
+
+    while (continuar) {
+        if (numItensPedido >= MAX_ITENS_PEDIDO) {
+            mvwprintw(win, 16, 2, "AVISO: Limite de itens atingido!");
+            continuar = 0;
+            break;
+        }
+
+        // Pede Produto
+        mvwprintw(win, linhaItem, 2, "ID Produto: ");
+        wgetnstr(win, buffer, 9);
+        int idProd = atoi(buffer);
+        int idxProd = obterIndiceProduto(idProd);
+
+        if (idxProd == -1) {
+            mvwprintw(win, linhaItem, 20, "X Nao encontrado!");
+        } else {
+            struct Produto p = listaProdutos[idxProd];
+            mvwprintw(win, linhaItem, 20, "%-15s", p.descricao);
+
+            // Pede Quantidade
+            mvwprintw(win, linhaItem, 40, "Qtd: ");
+            wgetnstr(win, buffer, 9);
+            int qtd = atoi(buffer);
+
+            if (qtd > 0) {
+                // Criar o item na memória
+                struct ItemPedido item;
+                item.pedidoId = novoPedido.id;
+                item.produtoId = p.id;
+                item.quantidade = qtd;
+                item.subtotal = qtd * p.preco;
+
+                // Salva no array global de itens
+                listaItensPedido[numItensPedido] = item;
+                numItensPedido++;
+
+                // Atualiza total do pedido
+                novoPedido.total += item.subtotal;
+
+                mvwprintw(win, linhaItem, 50, "= R$ %.2f", item.subtotal);
+                linhaItem++; 
+            }
+        }
+
+        // Pergunta se quer continuar
+        if (linhaItem >= 14) {
+            mvwprintw(win, 15, 2, "Muitos itens... (visualizacao parada)");
+        }
+
+        noecho();
+        mvwprintw(win, 16, 2, "Adicionar outro item? (S/N): ");
+        int ch = wgetch(win);
+        if (ch == 'n' || ch == 'N') {
+            continuar = 0;
+        } else {
+            mvwprintw(win, 16, 2, "                             "); // Limpa linha
+            echo();
+        }
+    }
+
+    // Salvar Pedido
+    listaPedidos[numPedidos] = novoPedido;
+    numPedidos++;
+
+    noecho();
+    mvwprintw(win, 18, 2, "Total do Pedido: R$ %.2f", novoPedido.total);
+    mvwprintw(win, 19, 2, "Pedido Salvo! Pressione qualquer tecla...");
+    wrefresh(win);
+    wgetch(win);
+    delwin(win);
+}
+
+// ########## TELA DE LISTAR PEDIDOS ##########
+void telaListarPedidos(void) {
+    int altura = LINES - 2;
+    int largura = COLS - 2;
+    WINDOW *win = newwin(altura, largura, 1, 1);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 17) / 2, "LISTA DE PEDIDOS");
+    wattroff(win, COLOR_PAIR(2));
+
+    mvwprintw(win, 3, 2, "ID  | Data       | Cliente (Nome/Razao)         | Total (R$)");
+    mvwprintw(win, 4, 2, "----+------------+------------------------------+-----------");
+
+    if (numPedidos == 0) {
+        mvwprintw(win, 6, 2, "Nenhum pedido cadastrado.");
+    } else {
+        for (int i = 0; i < numPedidos; i++) {
+            struct Pedido p = listaPedidos[i];
+
+            // Buscar nome do cliente
+            char nomeCliente[50] = "Desconhecido";
+            int idxCli = obterIndiceCliente(p.clienteId);
+
+            if (idxCli != -1) {
+                struct Cliente c = listaClientes[idxCli];
+                if (c.tipo == PESSOA_FISICA) {
+                    strncpy(nomeCliente, c.dados.pf.nome, 29);
+                } else {
+                    strncpy(nomeCliente, c.dados.pj.razaoSocial, 29);
+                }
+                nomeCliente[29] = '\0';
+            }
+
+            mvwprintw(win, 6 + i, 2, "%-3d | %-10s | %-28s | %9.2f",
+                      p.id, p.data, nomeCliente, p.total);
+        }
+    }
+
+    mvwprintw(win, altura - 2, 2, "Pressione qualquer tecla para voltar...");
+    wrefresh(win);
+    wgetch(win);
+    delwin(win);
+}
+
+// ########## TELA DE CONSULTAR PEDIDO ##########
+void telaConsultarPedido(void) {
+    int altura = 20, largura = 70;
+    WINDOW *win = newwin(altura, largura, (LINES - altura) / 2, (COLS - largura) / 2);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 16) / 2, "DETALHES DO PEDIDO");
+    wattroff(win, COLOR_PAIR(2));
+
+    echo();
+    char idStr[10];
+    mvwprintw(win, 3, 2, "ID do Pedido: ");
+    wgetnstr(win, idStr, 9);
+    noecho();
+
+    int id = atoi(idStr);
+    int idxPedido = obterIndicePedido(id);
+
+    if (idxPedido == -1) {
+        mvwprintw(win, 5, 2, "ERRO: Pedido ID %d nao encontrado.", id);
+    } else {
+        struct Pedido p = listaPedidos[idxPedido];
+
+        // Buscar nome do cliente
+        char nomeCliente[50] = "N/A";
+        int idxCli = obterIndiceCliente(p.clienteId);
+        if (idxCli != -1) {
+            if (listaClientes[idxCli].tipo == PESSOA_FISICA)
+                strcpy(nomeCliente, listaClientes[idxCli].dados.pf.nome);
+            else
+                strcpy(nomeCliente, listaClientes[idxCli].dados.pj.razaoSocial);
+        }
+
+        // Exibe cabeçalho
+        mvwprintw(win, 5, 2, "Data: %s", p.data);
+        mvwprintw(win, 6, 2, "Cliente: %s (ID %d)", nomeCliente, p.clienteId);
+        mvwprintw(win, 7, 2, "Total: R$ %.2f", p.total);
+
+        // Exibir Itens
+        mvwprintw(win, 9, 2, "--- Itens do Pedido ---");
+        int linha = 10;
+
+        for (int i = 0; i < numItensPedido; i++) {
+            if (listaItensPedido[i].pedidoId == p.id) {
+                // Buscar nome do produto
+                char nomeProd[30] = "Prod. Removido";
+                int idxProd = obterIndiceProduto(listaItensPedido[i].produtoId);
+                if (idxProd != -1) {
+                    strncpy(nomeProd, listaProdutos[idxProd].descricao, 29);
+                    nomeProd[29] = '\0';
+                }
+
+                if (linha < altura - 2) {
+                    mvwprintw(win, linha, 4, "%dx %-20s (R$ %.2f)", 
+                              listaItensPedido[i].quantidade,
+                              nomeProd,
+                              listaItensPedido[i].subtotal);
+                    linha++;
+                }
+            }
+        }
+    }
+
+    mvwprintw(win, altura - 2, 2, "Pressione qualquer tecla...");
+    wrefresh(win);
+    wgetch(win);
+    delwin(win);
+}
+
+// ########## TELA DE REMOVER PEDIDO ##########
+void telaRemoverPedido(void) {
+    int altura = 14, largura = 60;
+    WINDOW *win = newwin(altura, largura, (LINES - altura) / 2, (COLS - largura) / 2);
+    box(win, 0, 0);
+
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, 1, (largura - 14) / 2, "REMOVER PEDIDO");
+    wattroff(win, COLOR_PAIR(2));
+
+    echo();
+    char idStr[10];
+    mvwprintw(win, 3, 2, "ID do Pedido: ");
+    wgetnstr(win, idStr, 9);
+    noecho();
+
+    int id = atoi(idStr);
+    int idx = obterIndicePedido(id);
+
+    if (idx == -1) {
+        mvwprintw(win, 5, 2, "ERRO: Pedido ID %d nao encontrado.", id);
+        mvwprintw(win, 7, 2, "Pressione qualquer tecla...");
+        wgetch(win);
+    } else {
+        // Mostra um resumo para confirmar
+        struct Pedido p = listaPedidos[idx];
+        mvwprintw(win, 5, 2, "Data: %s", p.data);
+        mvwprintw(win, 6, 2, "Total: R$ %.2f", p.total);
+
+        wattron(win, COLOR_PAIR(2));
+        mvwprintw(win, 8, 2, "ATENCAO: Isto apagara o pedido e seus itens!");
+        wattroff(win, COLOR_PAIR(2));
+        mvwprintw(win, 9, 2, "Tem certeza? (S/N): ");
+
+        int ch = wgetch(win);
+        if (ch == 's' || ch == 'S') {
+            excluirPedido(id);
+            mvwprintw(win, 11, 2, "SUCESSO: Pedido removido.");
+        } else {
+            mvwprintw(win, 11, 2, "Operacao cancelada.");
+        }
+        wgetch(win);
+    }
     delwin(win);
 }

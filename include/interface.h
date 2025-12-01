@@ -22,5 +22,11 @@ void telaListarProdutos(void);
 void telaConsultarProduto(void);
 void telaRemoverProduto(void);
 
+// Telas de Pedido
+void telaCadastrarPedido(void);
+void telaListarPedidos(void);
+void telaConsultarPedido(void);
+void telaRemoverPedido(void);
+
 #endif // INTERFACE_H
 
