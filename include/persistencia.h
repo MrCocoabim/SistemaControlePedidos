@@ -1,6 +1,12 @@
 #ifndef PERSISTENCIA_H
 #define PERSISTENCIA_H
 
-// Declarações de funções de salvar/carregar CSV
+void salvarClientesCSV(void);
+void salvarProdutosCSV(void);
+void salvarPedidosCSV(void);
+
+void carregarClientesCSV(void);
+void carregarProdutosCSV(void);
+void carregarPedidosCSV(void);
 
 #endif // PERSISTENCIA_H

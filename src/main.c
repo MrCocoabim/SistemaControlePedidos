@@ -1,11 +1,16 @@
 #include "interface.h"
 #include <ncurses.h>
 #include "cliente.h"
+#include "persistencia.h"
 
 int main() {
 
+    // Carrega os dados do disco
+    carregarClientesCSV();
+    carregarProdutosCSV();
+    carregarPedidosCSV();
     // Inicializar a ncurses
-	inicializarInterface();
+    inicializarInterface();
 
     int escolha = 0;
     // Loop principal do menu
@@ -33,5 +38,10 @@ int main() {
     }
 
     finalizarInterface();
+    // Salva os dados no disco quando sai
+    salvarClientesCSV();
+    salvarProdutosCSV();
+    salvarPedidosCSV();
+
     return 0;
 }
